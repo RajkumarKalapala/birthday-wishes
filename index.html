@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday Vaishu</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose: #c9536a;
+      --rose-light: #f0c0c9;
+      --rose-pale: #fdf0f2;
+      --deep: #1a0a10;
+      --ink: #2d1520;
+      --muted: #7a5260;
+      --surface: rgba(255,255,255,0.07);
+      --border: rgba(201,83,106,0.25);
+      --text: #ffe8ed;
+      --text-dim: rgba(255,232,237,0.6);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0d0508;
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Canvas bg ── */
+    #bg-canvas {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    }
+
+    /* ── LANDING ── */
+    #landing {
+      position: relative; z-index: 10;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 2rem;
+    }
+
+    .landing-inner {
+      text-align: center; max-width: 420px; width: 100%;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    .landing-eyebrow {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-style: italic; letter-spacing: 0.15em;
+      color: var(--rose); margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+
+    .landing-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 10vw, 5rem);
+      font-weight: 300; line-height: 1.05;
+      margin-bottom: 0.3rem;
+    }
+
+    .landing-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 8vw, 3.5rem);
+      font-weight: 600; font-style: italic;
+      color: var(--rose-light);
+    }
+
+    .lock-card {
+      margin-top: 3rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      backdrop-filter: blur(20px);
+    }
+
+    .lock-label {
+      font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 1rem;
+    }
+
+    .lock-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.1rem; text-align: center; color: var(--text);
+      outline: none; transition: border-color 0.2s;
+      margin-bottom: 1rem;
+    }
+    .lock-input::placeholder { color: var(--text-dim); }
+    .lock-input:focus { border-color: var(--rose); }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--rose);
+      border: none; border-radius: 12px;
+      padding: 1rem; font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; font-weight: 500; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #fff; cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-primary:hover { background: #b8455c; }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .error-msg {
+      color: #f08090; font-size: 0.85rem; margin-top: 0.75rem;
+      min-height: 1.2em; transition: opacity 0.3s;
+    }
+    .error-msg.hidden { opacity: 0; }
+
+    /* ── MAIN APP ── */
+    #mainApp {
+      display: none; position: relative; z-index: 10;
+      min-height: 100vh;
+    }
+
+    .app-header {
+      text-align: center; padding: 4rem 2rem 2.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .app-header-sub {
+      font-size: 0.8rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--rose); margin-bottom: 1rem;
+    }
+
+    .app-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 8vw, 4.5rem);
+      font-weight: 300; line-height: 1.1;
+    }
+
+    .app-title span {
+      font-style: italic; color: var(--rose-light);
+    }
+
+    /* ── TABS ── */
+    .tab-bar {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 0.5rem; padding: 0 2rem 2.5rem;
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0.6rem 1.4rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; letter-spacing: 0.05em;
+      color: var(--text-dim); cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { border-color: var(--rose); color: var(--text); }
+    .tab-btn.active {
+      background: var(--rose); border-color: var(--rose);
+      color: #fff;
+    }
+
+    /* ── SECTIONS ── */
+    .section { display: none; padding: 0 1.5rem 5rem; animation: fadeUp 0.5s ease both; }
+    .section.active { display: block; }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 300; text-align: center;
+      margin-bottom: 2.5rem; color: var(--text);
+    }
+
+    /* ── PHOTOS ── */
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem; max-width: 900px; margin: 0 auto;
+    }
+
+    .photo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .photo-card:hover { transform: translateY(-4px); border-color: var(--rose); }
+
+    .photo-card img {
+      width: 100%; height: 320px; display: block;
+      background: rgba(255,255,255,0.04);
+      object-fit: cover; object-position: top center;
+    }
+
+    .photo-caption {
+      padding: 0.85rem 1rem;
+      font-size: 0.85rem; color: var(--text-dim);
+      font-style: italic;
+    }
+
+    /* ── UNIVERSES ── */
+    .universe-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem; max-width: 800px; margin: 0 auto;
+    }
+
+    .universe-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.75rem 1.5rem;
+      cursor: pointer; transition: all 0.25s;
+      position: relative; overflow: hidden;
+    }
+    .universe-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(201,83,106,0.08), transparent);
+      opacity: 0; transition: opacity 0.25s;
+    }
+    .universe-card:hover { transform: translateY(-3px); border-color: var(--rose); }
+    .universe-card:hover::before { opacity: 1; }
+
+    .universe-icon {
+      font-size: 2rem; margin-bottom: 1rem; display: block;
+    }
+    .universe-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem; margin-bottom: 0.5rem; font-weight: 400;
+    }
+    .universe-desc {
+      font-size: 0.85rem; color: var(--text-dim); line-height: 1.6;
+    }
+
+    .universe-popup {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(10,3,7,0.85); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center; padding: 2rem;
+    }
+    .universe-popup.open { display: flex; }
+
+    .universe-popup-inner {
+      background: #1a0c12;
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 2.5rem;
+      max-width: 420px; width: 100%; text-align: center;
+      animation: fadeUp 0.3s ease;
+    }
+    .universe-popup-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .universe-popup-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem; margin-bottom: 1rem;
+    }
+    .universe-popup-desc { color: var(--text-dim); line-height: 1.7; margin-bottom: 1.5rem; }
+    .btn-close {
+      background: transparent; border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.6rem 1.5rem;
+      color: var(--text-dim); font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-close:hover { border-color: var(--rose); color: var(--text); }
+
+    /* ── FUTURE LETTERS (AI) ── */
+    .letters-wrap {
+      max-width: 640px; margin: 0 auto;
+    }
+
+    .letters-intro {
+      text-align: center; color: var(--text-dim);
+      font-size: 0.9rem; line-height: 1.7; margin-bottom: 2rem;
+    }
+
+    .letters-form {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2rem;
+    }
+
+    .letters-input {
+      width: 100%; background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 1rem 1.2rem; font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; color: var(--text); outline: none;
+      transition: border-color 0.2s; margin-bottom: 1rem;
+      resize: none; min-height: 80px;
+    }
+    .letters-input::placeholder { color: var(--text-dim); }
+    .letters-input:focus { border-color: var(--rose); }
+
+    .btn-send {
+      background: var(--rose); border: none; border-radius: 12px;
+      padding: 0.9rem 2rem; font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; font-weight: 500; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #fff; cursor: pointer;
+      transition: background 0.2s; width: 100%;
+    }
+    .btn-send:hover { background: #b8455c; }
+    .btn-send:disabled { background: #5a2535; cursor: not-allowed; }
+
+    .letter-reply {
+      margin-top: 1.5rem; min-height: 60px;
+    }
+
+    .letter-reply-bubble {
+      background: rgba(201,83,106,0.1);
+      border: 1px solid rgba(201,83,106,0.2);
+      border-radius: 16px; padding: 1.5rem;
+    }
+
+    .letter-reply-from {
+      font-size: 0.75rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--rose);
+      margin-bottom: 0.75rem;
+    }
+
+    .letter-reply-q {
+      font-style: italic; color: var(--text-dim);
+      font-size: 0.9rem; margin-bottom: 0.75rem;
+    }
+
+    .letter-reply-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem; line-height: 1.75; color: var(--text);
+    }
+
+    .typing-dots span {
+      display: inline-block; width: 6px; height: 6px;
+      border-radius: 50%; background: var(--rose);
+      margin: 0 2px; animation: dot-bounce 1.2s infinite ease-in-out;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dot-bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-6px); }
+    }
+
+    /* ── SECRET MESSAGE ── */
+    .secret-wrap {
+      max-width: 680px; margin: 0 auto;
+    }
+
+    .secret-photo-frame {
+      border-radius: 20px; overflow: hidden;
+      border: 1px solid var(--border); margin-bottom: 2rem;
+      position: relative;
+    }
+    .secret-photo-frame img { width: 100%; display: block; }
+    .secret-photo-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 2rem; background: linear-gradient(transparent, rgba(10,3,7,0.85));
+    }
+    .secret-photo-caption {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem; font-style: italic; color: var(--rose-light);
+    }
+
+    .secret-letter {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2.5rem;
+    }
+
+    .secret-letter p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem; line-height: 1.9; color: var(--text);
+      margin-bottom: 1.25rem;
+    }
+    .secret-letter p:last-child { margin-bottom: 0; }
+
+    .secret-sign {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-style: italic;
+      color: var(--rose-light); margin-top: 1.5rem;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--rose); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- Universe popup -->
+<div class="universe-popup" id="universePopup">
+  <div class="universe-popup-inner">
+    <div class="universe-popup-icon" id="popupIcon"></div>
+    <div class="universe-popup-title" id="popupTitle"></div>
+    <p class="universe-popup-desc" id="popupDesc"></p>
+    <button class="btn-close" onclick="closeUniverse()">Close</button>
+  </div>
+</div>
+
+<!-- LANDING -->
+<div id="landing">
+  <div class="landing-inner">
+    <div class="landing-eyebrow">For you, always</div>
+    <div class="landing-title">Happy Birthday</div>
+    <div class="landing-name">Vaishu</div>
+
+    <div class="lock-card">
+      <div class="lock-label">Enter the password</div>
+      <input id="passwordInput" class="lock-input" type="text" placeholder="our secret"
+             onkeydown="if(event.key==='Enter')checkPassword()">
+      <button class="btn-primary" onclick="checkPassword()">Open →</button>
+      <div class="error-msg hidden" id="errorMsg">That's not it. Try again.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp">
+  <div class="app-header">
+    <div class="app-header-sub">April 25 · For Vaishu</div>
+    <div class="app-title">Happy Birthday,<br><span>Vaishu</span></div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showSection(0)">Photos</button>
+    <button class="tab-btn" onclick="showSection(1)">What If</button>
+    <button class="tab-btn" onclick="showSection(2)">Letters</button>
+    <button class="tab-btn" onclick="showSection(3)">For You</button>
+  </div>
+
+  <!-- Section 0: Photos -->
+  <div id="section0" class="section active">
+    <div class="section-title">You, always</div>
+    <div class="photos-grid" id="photosGrid"></div>
+  </div>
+
+  <!-- Section 1: What If -->
+  <div id="section1" class="section">
+    <div class="section-title">What if we did this</div>
+    <div class="universe-grid" id="universeGrid"></div>
+  </div>
+
+  <!-- Section 2: Letters (AI) -->
+  <div id="section2" class="section">
+    <div class="section-title">Letters from our future</div>
+    <div class="letters-wrap">
+      <p class="letters-intro">Write a question about our future, and I'll let future-us answer it.</p>
+      <div class="letters-form">
+        <textarea id="futureQuestion" class="letters-input"
+                  placeholder="Where will we travel next year?"></textarea>
+        <button class="btn-send" id="sendBtn" onclick="sendToFuture()">Send the letter →</button>
+        <div class="letter-reply" id="letterReply"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: Secret -->
+  <div id="section3" class="section">
+    <div class="section-title">Just for you</div>
+    <div class="secret-wrap">
+      <div class="secret-photo-frame">
+        <img src="https://i.ibb.co/4Z2mBz9D/img-01.jpg" alt="Vaishu" onerror="this.style.display='none'">
+        <div class="secret-photo-overlay">
+          <div class="secret-photo-caption">My favourite photo of you</div>
+        </div>
+      </div>
+      <div class="secret-letter">
+        <p>Happy Birthday, Vaishu.</p>
+        <p>
+          Honestly, I wasn't sure what to write here. We've had our rough patches — 
+          and right now things aren't perfect between us. But today's your birthday, 
+          and that matters more than whatever's going on.
+        </p>
+        <p>
+          You deserve to feel celebrated. You're one of the most real people I know — 
+          you don't pretend, you don't water yourself down, and I genuinely respect that 
+          about you, even when it's uncomfortable.
+        </p>
+        <p>
+          I made this for you because you deserve something that's just yours. 
+          Not perfect. Not trying too hard. Just honest.
+        </p>
+        <p>
+          I hope today is good to you. You deserve that much, at the very least.
+        </p>
+        <div class="secret-sign">— Yours Rajkumar ❤️.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const PASSWORD = "vaishu-forever";
+
+const photos = [
+  { url: "https://i.ibb.co/4Z2mBz9D/img-01.jpg", caption: "Stunning as always" },
+  { url: "https://i.ibb.co/S4WvkQVG/img-02-edited.jpg", caption: "My beautiful girl" },
+  { url: "https://i.ibb.co/7x0NL53n/img-03-edited.png", caption: "You take my breath away" },
+  { url: "https://i.ibb.co/7dR8DZBP/img-04.jpg", caption: "So elegant" },
+  { url: "https://i.ibb.co/MyYCWCR4/img-05.jpg", caption: "That smile" },
+  { url: "https://i.ibb.co/YTTzVW8s/img-06.jpg", caption: "Pure beauty" },
+  { url: "https://i.ibb.co/ZphQvVF0/img-7.jpg", caption: "My favourite view" },
+  { url: "https://i.ibb.co/GvrQBC08/img-08.jpg", caption: "Gorgeous" },
+  { url: "https://i.ibb.co/8ng8F3Z3/img-09.jpg", caption: "Incredible" },
+  { url: "https://i.ibb.co/VY8MSTjV/img-10.jpg", caption: "Always you" },
+  { url: "https://i.ibb.co/TXnxbGL/img-11.jpg", caption: "Forever my favourite person" }
+];
+
+const universes = [
+  { icon: "🏡", title: "Our own little world", desc: "Just us, a place of our own, and the kind of quiet that feels like home. No drama. Just us." },
+  { icon: "✈️", title: "Somewhere new", desc: "A trip we haven't planned yet. Somewhere we've both wanted to go. Windows down, no itinerary." },
+  { icon: "🍜", title: "Trying every place in town", desc: "Working through every restaurant in Vijayawada together. Bad ones and good ones both count." },
+  { icon: "🌙", title: "Slow evenings", desc: "Nothing going on. Just talking, or not talking. The kind of time that doesn't need to be anything." }
+];
+
+function checkPassword() {
+  const val = document.getElementById("passwordInput").value.trim().toLowerCase();
+  const err = document.getElementById("errorMsg");
+  if (val === PASSWORD) {
+    document.getElementById("landing").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+    loadPhotos(); loadUniverses();
+    burst();
+  } else {
+    err.classList.remove("hidden");
+    setTimeout(() => err.classList.add("hidden"), 2500);
+  }
+}
+
+function loadPhotos() {
+  document.getElementById("photosGrid").innerHTML = photos.map(p => `
+    <div class="photo-card">
+      <img src="${p.url}" alt="Vaishu" loading="lazy" onerror="this.parentElement.style.display='none'">
+      <div class="photo-caption">${p.caption}</div>
+    </div>
+  `).join('');
+}
+
+function loadUniverses() {
+  document.getElementById("universeGrid").innerHTML = universes.map((u, i) => `
+    <div class="universe-card" onclick="openUniverse(${i})">
+      <span class="universe-icon">${u.icon}</span>
+      <div class="universe-title">${u.title}</div>
+      <div class="universe-desc">${u.desc}</div>
+    </div>
+  `).join('');
+}
+
+function openUniverse(i) {
+  const u = universes[i];
+  document.getElementById("popupIcon").textContent = u.icon;
+  document.getElementById("popupTitle").textContent = u.title;
+  document.getElementById("popupDesc").textContent = u.desc;
+  document.getElementById("universePopup").classList.add("open");
+}
+function closeUniverse() {
+  document.getElementById("universePopup").classList.remove("open");
+}
+document.getElementById("universePopup").addEventListener("click", function(e) {
+  if (e.target === this) closeUniverse();
+});
+
+async function sendToFuture() {
+  const q = document.getElementById("futureQuestion").value.trim();
+  if (!q) return;
+
+  const btn = document.getElementById("sendBtn");
+  const replyDiv = document.getElementById("letterReply");
+
+  btn.disabled = true;
+  btn.textContent = "Sending...";
+
+  replyDiv.innerHTML = `
+    <div class="letter-reply-bubble">
+      <div class="letter-reply-from">Future us — writing back</div>
+      <div class="letter-reply-q">"${q}"</div>
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+    </div>
+  `;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: `You are writing a warm but grounded letter from the "future us" — a couple named Vaishu and her partner. 
+The tone should be sincere, direct, and a little poetic. Not over-the-top romantic — they recently had a fight, 
+so keep things honest and warm, not saccharine. 
+Write in first person plural ("we", "us") as if you're both writing together from the future. 
+Keep it to 3-5 sentences. No emojis. No bullet points. Just a short, genuine, heartfelt note.`,
+        messages: [{ role: "user", content: `The question from us today: "${q}"` }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content?.map(b => b.text || "").join("") || "The future is still being written. Ask again soon.";
+
+    replyDiv.innerHTML = `
+      <div class="letter-reply-bubble">
+        <div class="letter-reply-from">From future us</div>
+        <div class="letter-reply-q">"${q}"</div>
+        <div class="letter-reply-text">${text}</div>
+      </div>
+    `;
+    burst();
+  } catch(e) {
+    replyDiv.innerHTML = `
+      <div class="letter-reply-bubble">
+        <div class="letter-reply-from">Couldn't reach the future</div>
+        <div class="letter-reply-text" style="color:var(--text-dim)">Something went wrong. Try again.</div>
+      </div>
+    `;
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Send the letter →";
+  document.getElementById("futureQuestion").value = "";
+}
+
+function showSection(n) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === n));
+  document.getElementById('section' + n).classList.add('active');
+}
+
+function burst() {
+  confetti({ particleCount: 80, spread: 55, origin: { y: 0.65 },
+    colors: ['#c9536a', '#f0c0c9', '#fdf0f2', '#ffffff'] });
+}
+
+/* ── Floating particles ── */
+(function(){
+  const canvas = document.getElementById("bg-canvas");
+  const ctx = canvas.getContext("2d");
+  let W, H, pts = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function init() {
+    resize();
+    pts = Array.from({length: 55}, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.3,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      a: Math.random()
+    }));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of pts) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(201,83,106,${p.a * 0.4})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener("resize", resize);
+  init(); draw();
+})();
+</script>
+</body>
+</html>
